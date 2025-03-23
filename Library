@@ -1,39 +1,61 @@
---[[ 
-    NovaUI Library by Encrypted
-    A custom UI library for Roblox, featuring:
-    - Window, Tabs, Toggles, Dropdowns, Buttons, Sliders, Textboxes, and Notifications
-    - Green-themed modern UI with smooth animations
-    - 1.5k+ lines of structured code
-]]
-
 local NovaUI = {}
 local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
--- UI Variables
+local function createAnimation(target, property, propertyValue, time)
+    local tween = TweenService:Create(target, TweenInfo.new(time, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {[property] = propertyValue})
+    tween:Play()
+    tween.Completed:Wait()
+end
+
 NovaUI.MainUI = Instance.new("ScreenGui")
 NovaUI.MainUI.Name = "NovaUI"
 NovaUI.MainUI.ResetOnSpawn = false
 NovaUI.MainUI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Function to create a draggable window
 function NovaUI:CreateWindow(title)
     local Window = Instance.new("Frame")
-    Window.Size = UDim2.new(0, 450, 0, 300)
-    Window.Position = UDim2.new(0.5, -225, 0.5, -150)
-    Window.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Window.Size = UDim2.new(0, 450, 0, 400)
+    Window.Position = UDim2.new(0.5, -225, 0.5, -200)
+    Window.BackgroundColor3 = Color3.fromRGB(30, 40, 30)
     Window.BorderSizePixel = 0
     Window.Parent = self.MainUI
+    Window.Visible = true
+
+    -- Create a border for the window
+    local Border = Instance.new("Frame")
+    Border.Size = UDim2.new(1, 0, 1, 0)
+    Border.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+    Border.BorderSizePixel = 0
+    Border.Parent = Window
+    Border.ZIndex = 0
 
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, 0, 0, 40)
-    Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Title.BackgroundColor3 = Color3.fromRGB(20, 30, 20)
     Title.Text = title
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.Font = Enum.Font.Gotham
-    Title.TextSize = 18
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 20
     Title.Parent = Window
 
+    local MinimizeButton = Instance.new("ImageButton")
+    MinimizeButton.Size = UDim2.new(0, 50, 0, 50)
+    MinimizeButton.Position = UDim2.new(0.45, -65, 0.5, -25)
+    MinimizeButton.BackgroundTransparency = 1
+    MinimizeButton.Image = "rbxassetid://your_image_id_here" -- Replace with your image ID
+    MinimizeButton.Parent = self.MainUI
+
+    local isMinimized = false
+    MinimizeButton.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+        createAnimation(Window, "Position", isMinimized and UDim2.new(0.5, -225, 0.5, 200) or UDim2.new(0.5, -225, 0.5, -200), 0.3)
+        Window.Visible = not isMinimized
+        createAnimation(Border, "Size", isMinimized and UDim2.new(1, 0, 1, 0) or UDim2.new(1, 0, 1, 0), 0.3) -- Smooth border disappearance
+    end)
+
+    -- Drag functionality
     local Dragging, DragInput, DragStart, StartPos
     Title.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -47,13 +69,13 @@ function NovaUI:CreateWindow(title)
             end)
         end
     end)
-    
+
     Title.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement then
             DragInput = input
         end
     end)
-    
+
     UIS.InputChanged:Connect(function(input)
         if input == DragInput and Dragging then
             local Delta = input.Position - DragStart
@@ -64,21 +86,30 @@ function NovaUI:CreateWindow(title)
     local TabContainer = Instance.new("Frame")
     TabContainer.Size = UDim2.new(1, 0, 1, -40)
     TabContainer.Position = UDim2.new(0, 0, 0, 40)
-    TabContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    TabContainer.BackgroundColor3 = Color3.fromRGB(25, 30, 25)
     TabContainer.Parent = Window
 
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.FillDirection = Enum.FillDirection.Vertical
+    UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    UIListLayout.Parent = TabContainer
+
     local Tabs = {}
-    function Tabs:CreateTab(tabName)
+    
+    -- Utility for tab creation
+    function Tabs:CreateTab(TabName)
         local Tab = Instance.new("Frame")
         Tab.Size = UDim2.new(1, 0, 1, 0)
         Tab.BackgroundTransparency = 1
         Tab.Visible = false
         Tab.Parent = TabContainer
 
+        -- Tab button
         local Button = Instance.new("TextButton")
         Button.Size = UDim2.new(0, 100, 0, 30)
-        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        Button.Text = tabName
+        Button.BackgroundColor3 = Color3.fromRGB(40, 50, 40)
+        Button.Text = TabName
         Button.TextColor3 = Color3.fromRGB(255, 255, 255)
         Button.Parent = Window
 
@@ -90,10 +121,11 @@ function NovaUI:CreateWindow(title)
         end)
 
         local Elements = {}
+
         function Elements:CreateToggle(name, callback)
             local Toggle = Instance.new("TextButton")
             Toggle.Size = UDim2.new(0, 200, 0, 30)
-            Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Toggle.BackgroundColor3 = Color3.fromRGB(50, 60, 50)
             Toggle.Text = name
             Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
             Toggle.Parent = Tab
@@ -101,7 +133,8 @@ function NovaUI:CreateWindow(title)
             local State = false
             Toggle.MouseButton1Click:Connect(function()
                 State = not State
-                Toggle.BackgroundColor3 = State and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(50, 50, 50)
+                Toggle.BackgroundColor3 = State and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(50, 60, 50)
+                createAnimation(Toggle, "BackgroundColor3", State and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(50, 60, 50), 0.2)
                 callback(State)
             end)
         end
@@ -109,20 +142,23 @@ function NovaUI:CreateWindow(title)
         function Elements:CreateButton(name, callback)
             local Button = Instance.new("TextButton")
             Button.Size = UDim2.new(0, 200, 0, 30)
-            Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Button.BackgroundColor3 = Color3.fromRGB(50, 60, 50)
             Button.Text = name
             Button.TextColor3 = Color3.fromRGB(255, 255, 255)
             Button.Parent = Tab
 
             Button.MouseButton1Click:Connect(function()
                 callback()
+                createAnimation(Button, "BackgroundColor3", Color3.fromRGB(0, 150, 0), 0.2)
+                wait(0.2)
+                createAnimation(Button, "BackgroundColor3", Color3.fromRGB(50, 60, 50), 0.2)
             end)
         end
 
         function Elements:CreateDropdown(name, options, callback)
             local Dropdown = Instance.new("TextButton")
             Dropdown.Size = UDim2.new(0, 200, 0, 30)
-            Dropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Dropdown.BackgroundColor3 = Color3.fromRGB(50, 60, 50)
             Dropdown.Text = name
             Dropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
             Dropdown.Parent = Tab
@@ -131,17 +167,21 @@ function NovaUI:CreateWindow(title)
             local OptionFrame = Instance.new("Frame")
             OptionFrame.Size = UDim2.new(0, 200, 0, #options * 30)
             OptionFrame.Visible = false
+            OptionFrame.BackgroundColor3 = Color3.fromRGB(25, 30, 25)
             OptionFrame.Parent = Tab
 
             Dropdown.MouseButton1Click:Connect(function()
                 Open = not Open
                 OptionFrame.Visible = Open
+                createAnimation(OptionFrame, "Size", Open and UDim2.new(0, 200, 0, #options * 30) or UDim2.new(0, 200, 0, 0), 0.3)
             end)
 
             for _, option in ipairs(options) do
                 local OptionButton = Instance.new("TextButton")
                 OptionButton.Size = UDim2.new(1, 0, 0, 30)
                 OptionButton.Text = option
+                OptionButton.BackgroundColor3 = Color3.fromRGB(40, 50, 40)
+                OptionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
                 OptionButton.Parent = OptionFrame
 
                 OptionButton.MouseButton1Click:Connect(function()
@@ -156,13 +196,16 @@ function NovaUI:CreateWindow(title)
         function Elements:CreateTextbox(name, callback)
             local Textbox = Instance.new("TextBox")
             Textbox.Size = UDim2.new(0, 200, 0, 30)
-            Textbox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Textbox.BackgroundColor3 = Color3.fromRGB(50, 60, 50)
             Textbox.Text = name
             Textbox.TextColor3 = Color3.fromRGB(255, 255, 255)
             Textbox.Parent = Tab
 
             Textbox.FocusLost:Connect(function()
                 callback(Textbox.Text)
+                createAnimation(Textbox, "BackgroundColor3", Color3.fromRGB(200, 0, 0), 0.2)
+                wait(0.2)
+                createAnimation(Textbox, "BackgroundColor3", Color3.fromRGB(50, 60, 50), 0.2)
             end)
         end
 
@@ -175,8 +218,52 @@ function NovaUI:CreateWindow(title)
             Notification.TextColor3 = Color3.fromRGB(255, 255, 255)
             Notification.Parent = self.MainUI
 
+            createAnimation(Notification, "BackgroundColor3", Color3.fromRGB(0, 250, 0), 0.5)
             task.wait(3)
             Notification:Destroy()
+        end
+
+        function Elements:CreateSlider(name, minValue, maxValue, callback)
+            local SliderFrame = Instance.new("Frame")
+            SliderFrame.Size = UDim2.new(0, 200, 0, 30)
+            SliderFrame.BackgroundColor3 = Color3.fromRGB(50, 60, 50)
+            SliderFrame.Parent = Tab
+
+            local SliderLabel = Instance.new("TextLabel")
+            SliderLabel.Size = UDim2.new(0, 200, 0, 30)
+            SliderLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+            SliderLabel.Text = name .. ": " .. minValue
+            SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            SliderLabel.Font = Enum.Font.Gotham
+            SliderLabel.TextSize = 14
+            SliderLabel.Parent = SliderFrame
+
+            local SliderButton = Instance.new("TextButton")
+            SliderButton.Size = UDim2.new(0, 10, 1, 0)
+            SliderButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+            SliderButton.Position = UDim2.new(0, 0, 0, 0)
+            SliderButton.Parent = SliderFrame
+
+            SliderButton.MouseButton1Down:Connect(function()
+                local dragging = true
+                local mouse = game.Players.LocalPlayer:GetMouse()
+
+                UIS.InputChanged:Connect(function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        local mouseX = math.clamp(mouse.X - SliderFrame.AbsolutePosition.X, 0, SliderFrame.AbsoluteSize.X)
+                        local value = math.round(minValue + (mouseX / SliderFrame.AbsoluteSize.X) * (maxValue - minValue))
+                        SliderButton.Position = UDim2.new(value / (maxValue - minValue), 0, 0, 0)
+                        SliderLabel.Text = name .. ": " .. tostring(value)
+                        callback(value)
+                    end
+                end)
+
+                UIS.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
+                end)
+            end)
         end
 
         return Elements
