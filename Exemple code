@@ -1,7 +1,63 @@
+-- Load the NovaUI library from the URL
 local NovaUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/EncryptedV2/EncryptedV2/refs/heads/main/Library"))()
-local Window = NovaUI:CreateWindow("Nova UI")  
-local Tab1 = Window:CreateTab("Main")  
 
-Tab1:CreateButton("Test Button", function()  
-    print("Button Clicked!")  
+-- Create a new window
+local Window = NovaUI:CreateWindow("Nova UI")
+
+-- Create a main tab
+local Tab1 = Window:CreateTab("Main")
+
+-- Create a button
+Tab1:CreateButton("Test Button", function()
+    print("Button Clicked!")
 end)
+
+-- Create a toggle for enabling/disabling a feature
+Tab1:CreateToggle("Enable Feature", function(state)
+    if state then
+        print("Feature Enabled")
+    else
+        print("Feature Disabled")
+    end
+end)
+
+-- Create a dropdown to select options
+Tab1:CreateDropdown("Select Option", {"Option 1", "Option 2", "Option 3"}, function(selected)
+    print("You selected: " .. selected)
+end)
+
+-- Create a textbox to enter some input
+Tab1:CreateTextbox("Enter your name", function(input)
+    print("Hello, " .. input .. "!")
+end)
+
+-- Create a slider to select numeric values
+Tab1:CreateSlider("Select Volume", 0, 100, function(value)
+    print("Volume set to: " .. value)
+end)
+
+-- Create another tab for additional features
+local Tab2 = Window:CreateTab("Settings")
+
+-- Create a button in the Settings tab
+Tab2:CreateButton("Reset Settings", function()
+    print("Settings Reset!")
+end)
+
+-- Create a checkbox to enable/disable advanced settings
+Tab2:CreateToggle("Enable Advanced Settings", function(state)
+    print(state and "Advanced Settings Enabled" or "Advanced Settings Disabled")
+end)
+
+-- Create a dropdown for selecting graphic options
+Tab2:CreateDropdown("Graphics Quality", {"Low", "Medium", "High"}, function(selected)
+    print("Graphics set to: " .. selected)
+end)
+
+-- Create a notification on window open
+Tab1:CreateNotification("Welcome to Nova UI! Enjoy your stay!")
+
+-- Listen to the close event of the window
+Window:Get(closeEvent) -- This would be a potential method to listen for the close event in a real library.
+
+-- Optionally add more functionality as needed to the library.
