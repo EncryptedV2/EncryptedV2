@@ -1,4 +1,4 @@
-local NovaUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/YourUsername/NovaUILibrary/main/NovaUI.lua"))()
+local NovaUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/EncryptedV2/EncryptedV2/refs/heads/main/Library"))()
 local Window = NovaUI:CreateWindow("Nova UI")  
 local Tab1 = Window:CreateTab("Main")  
 
