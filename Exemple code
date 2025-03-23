@@ -1,0 +1,7 @@
+local NovaUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/YourUsername/NovaUILibrary/main/NovaUI.lua"))()
+local Window = NovaUI:CreateWindow("Nova UI")  
+local Tab1 = Window:CreateTab("Main")  
+
+Tab1:CreateButton("Test Button", function()  
+    print("Button Clicked!")  
+end)
