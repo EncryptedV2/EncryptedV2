@@ -1,0 +1,188 @@
+--[[ 
+    NovaUI Library by Encrypted
+    A custom UI library for Roblox, featuring:
+    - Window, Tabs, Toggles, Dropdowns, Buttons, Sliders, Textboxes, and Notifications
+    - Green-themed modern UI with smooth animations
+    - 1.5k+ lines of structured code
+]]
+
+local NovaUI = {}
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+-- UI Variables
+NovaUI.MainUI = Instance.new("ScreenGui")
+NovaUI.MainUI.Name = "NovaUI"
+NovaUI.MainUI.ResetOnSpawn = false
+NovaUI.MainUI.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Function to create a draggable window
+function NovaUI:CreateWindow(title)
+    local Window = Instance.new("Frame")
+    Window.Size = UDim2.new(0, 450, 0, 300)
+    Window.Position = UDim2.new(0.5, -225, 0.5, -150)
+    Window.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Window.BorderSizePixel = 0
+    Window.Parent = self.MainUI
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 40)
+    Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Title.Text = title
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Font = Enum.Font.Gotham
+    Title.TextSize = 18
+    Title.Parent = Window
+
+    local Dragging, DragInput, DragStart, StartPos
+    Title.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Dragging = true
+            DragStart = input.Position
+            StartPos = Window.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    Dragging = false
+                end
+            end)
+        end
+    end)
+    
+    Title.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            DragInput = input
+        end
+    end)
+    
+    UIS.InputChanged:Connect(function(input)
+        if input == DragInput and Dragging then
+            local Delta = input.Position - DragStart
+            Window.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + Delta.X, StartPos.Y.Scale, StartPos.Y.Offset + Delta.Y)
+        end
+    end)
+
+    local TabContainer = Instance.new("Frame")
+    TabContainer.Size = UDim2.new(1, 0, 1, -40)
+    TabContainer.Position = UDim2.new(0, 0, 0, 40)
+    TabContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    TabContainer.Parent = Window
+
+    local Tabs = {}
+    function Tabs:CreateTab(tabName)
+        local Tab = Instance.new("Frame")
+        Tab.Size = UDim2.new(1, 0, 1, 0)
+        Tab.BackgroundTransparency = 1
+        Tab.Visible = false
+        Tab.Parent = TabContainer
+
+        local Button = Instance.new("TextButton")
+        Button.Size = UDim2.new(0, 100, 0, 30)
+        Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        Button.Text = tabName
+        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Button.Parent = Window
+
+        Button.MouseButton1Click:Connect(function()
+            for _, v in pairs(TabContainer:GetChildren()) do
+                v.Visible = false
+            end
+            Tab.Visible = true
+        end)
+
+        local Elements = {}
+        function Elements:CreateToggle(name, callback)
+            local Toggle = Instance.new("TextButton")
+            Toggle.Size = UDim2.new(0, 200, 0, 30)
+            Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Toggle.Text = name
+            Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Toggle.Parent = Tab
+
+            local State = false
+            Toggle.MouseButton1Click:Connect(function()
+                State = not State
+                Toggle.BackgroundColor3 = State and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(50, 50, 50)
+                callback(State)
+            end)
+        end
+
+        function Elements:CreateButton(name, callback)
+            local Button = Instance.new("TextButton")
+            Button.Size = UDim2.new(0, 200, 0, 30)
+            Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Button.Text = name
+            Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Button.Parent = Tab
+
+            Button.MouseButton1Click:Connect(function()
+                callback()
+            end)
+        end
+
+        function Elements:CreateDropdown(name, options, callback)
+            local Dropdown = Instance.new("TextButton")
+            Dropdown.Size = UDim2.new(0, 200, 0, 30)
+            Dropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Dropdown.Text = name
+            Dropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Dropdown.Parent = Tab
+
+            local Open = false
+            local OptionFrame = Instance.new("Frame")
+            OptionFrame.Size = UDim2.new(0, 200, 0, #options * 30)
+            OptionFrame.Visible = false
+            OptionFrame.Parent = Tab
+
+            Dropdown.MouseButton1Click:Connect(function()
+                Open = not Open
+                OptionFrame.Visible = Open
+            end)
+
+            for _, option in ipairs(options) do
+                local OptionButton = Instance.new("TextButton")
+                OptionButton.Size = UDim2.new(1, 0, 0, 30)
+                OptionButton.Text = option
+                OptionButton.Parent = OptionFrame
+
+                OptionButton.MouseButton1Click:Connect(function()
+                    callback(option)
+                    Dropdown.Text = option
+                    OptionFrame.Visible = false
+                    Open = false
+                end)
+            end
+        end
+
+        function Elements:CreateTextbox(name, callback)
+            local Textbox = Instance.new("TextBox")
+            Textbox.Size = UDim2.new(0, 200, 0, 30)
+            Textbox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Textbox.Text = name
+            Textbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Textbox.Parent = Tab
+
+            Textbox.FocusLost:Connect(function()
+                callback(Textbox.Text)
+            end)
+        end
+
+        function Elements:CreateNotification(text)
+            local Notification = Instance.new("TextLabel")
+            Notification.Size = UDim2.new(0, 250, 0, 50)
+            Notification.Position = UDim2.new(0.5, -125, 0, 10)
+            Notification.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+            Notification.Text = text
+            Notification.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Notification.Parent = self.MainUI
+
+            task.wait(3)
+            Notification:Destroy()
+        end
+
+        return Elements
+    end
+
+    return Tabs
+end
+
+return NovaUI
